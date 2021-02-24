@@ -11,9 +11,17 @@ const jwt = require('jsonwebtoken');
 const { findOne } = require('../models/Participant');
 require('dotenv').config({ path: __dirname + '/../.env' })
 
-
+// function restartGetQus(req,res){
+//     ParticipantController.getRandomQuestion
+//    // if(!getRandomQuestion()){
+//    //     console.log('azr');
+//    // }
+// }
 
 class ParticipantController {
+    constructor(){
+        return this;
+    }
 
     addParticipant = async (req, res) => {
         bcrypt.hash(req.body.password, 10, (err, hash) => {
@@ -212,8 +220,45 @@ class ParticipantController {
         }
     }
 
+     hola = function() {
+        console.log('salut')
+    }
 
-
+     restartGetQus=async()=>{
+         await getRandomQuestion(req,res)
+        // if(!getRandomQuestion()){
+        //     console.log('azr');
+        // }
+    }
+    async  getRandomQuestion(req,res){
+        // try {
+            // Qustion.countDocuments(async(err,count) =>{
+                const docs =await Qustion.countDocuments()
+                var random = Math.floor(Math.random() * docs)
+                const code = req.params.code
+                const randomQuestion = await Qustion.findOne().skip(random)
+                
+                const QustionInGroup = await Group.findOne({code:req.params.code}).select('questions')
+                
+                if(QustionInGroup.questions.includes(randomQuestion._id)){
+                  
+                    console.log('bad ques');
+                    // ParticipantController.getRandomQuestion(req,res)
+                    // restartGetQus()
+                    // this.hola();
+                    var a = new ParticipantController();
+                    await console.log(a.hola())
+                }else{
+                    console.log('good ques');
+                    console.log(randomQuestion);
+                    console.log(QustionInGroup.questions);
+                    return true
+                }
+                
+                
+        getRandomQuestion()
+    }
+    
 }
 
 

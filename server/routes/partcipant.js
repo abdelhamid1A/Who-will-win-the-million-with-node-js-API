@@ -9,5 +9,6 @@ router.post('/login',ParticipantController.loginParticipant)
 router.post('/creatGroup',tokenMiddleware,ParticipantController.creatGroup)
 router.patch('/joinGroup',tokenMiddleware,ParticipantController.grouJoin)
 router.post('/addAnwser/:id',ParticipantController.anwser)
+router.get('/getQuestion/:code',ParticipantController.getRandomQuestion)
 
 module.exports = router

@@ -4,10 +4,12 @@ const Participant = require('../models/Participant')
 const Qusetion = require('../models/Qustion')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const sendMail = require('./MethodeController')
+const {sendMali} = require('./MethodeController')
 const nexmo = require('../config/sms')
+const PartContrller = require('./ParticipantController')
 require('dotenv').config({ path: __dirname + '/../.env' })
 
+//PartContrller.hola();
 class AdminController {
     async loginAdmin(req, res) {
         const body = req.body
@@ -57,7 +59,7 @@ class AdminController {
 
     async particapantvalidate(req, res) {
         const validate = await Participant.findByIdAndUpdate({ _id: req.params.id }, { $set: { is_valid: true } }, { new: true })
-        const email = await sendMail(validate)
+        const email = await sendMali(validate)
 
         // const from = 'million';
         // const to = validate.phone
