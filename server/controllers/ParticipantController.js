@@ -6,22 +6,14 @@ const Qustion = require('../models/Qustion')
 const QuestionToken = require('../models/QuestionToken')
 const Round = require('../models/Round')
 const bcrypt = require('bcrypt')
-const { getNumber,saveLog } = require('../controllers/MethodeController')
+const { getNumber, saveLog } = require('../controllers/MethodeController')
 const jwt = require('jsonwebtoken');
 const { findOne } = require('../models/Participant');
 require('dotenv').config({ path: __dirname + '/../.env' })
 
-// function restartGetQus(req,res){
-//     ParticipantController.getRandomQuestion
-//    // if(!getRandomQuestion()){
-//    //     console.log('azr');
-//    // }
-// }
 
 class ParticipantController {
-    constructor(){
-        return this;
-    }
+
 
     addParticipant = async (req, res) => {
         bcrypt.hash(req.body.password, 10, (err, hash) => {
@@ -67,7 +59,7 @@ class ParticipantController {
         const token = req.header('x-auth-token')
         const tokenDecode = jwt.verify(token, process.env.TOKENKEY)
         if (tokenDecode.is_valid) {
-            await Participant.findByIdAndUpdate({_id : tokenDecode._id},{$set:{points : 0}})
+            await Participant.findByIdAndUpdate({ _id: tokenDecode._id }, { $set: { points: 0 } })
             const userPlay = await Group.findOne({ start: true, id_participants: tokenDecode._id })
             console.log(userPlay);
             if (userPlay) {
@@ -90,7 +82,7 @@ class ParticipantController {
                 const newGroup = await group.save()
                 res.status(202).json({ message: 'marhaba', group: newGroup })
             }
-            saveLog("create group","info","creatGroup")
+            saveLog("create group", "info", "creatGroup")
         } else {
             res.send('not valid')
 
@@ -105,7 +97,7 @@ class ParticipantController {
             const code = req.body.code
             const group = await Group.findOne({ code: code })
             if (group) {
-               await Participant.findByIdAndUpdate({_id : tokenDecode._id},{$set:{points : 0}})
+                await Participant.findByIdAndUpdate({ _id: tokenDecode._id }, { $set: { points: 0 } })
                 if (group.id_participants.length < 4) {
                     if (group.id_participants.includes(tokenDecode._id)) {
                         res.send('you are already joined')
@@ -117,11 +109,11 @@ class ParticipantController {
                             const Updated = await userPlay.save()
                             const groupAfterJoin = await group.id_participants.push(tokenDecode._id)
                             const groupUpdated = await group.save()
-                            res.status(200).json({ message: 'tzad fa jdid', group: groupUpdated })
+                            res.status(200).json({ message: 'delete from the first group and reset point to 0', group: groupUpdated })
                         } else {
                             const groupAfterJoin = await group.id_participants.push(tokenDecode._id)
                             const groupUpdated = await group.save()
-                            res.status(202).json({ message: 'marhaba', group: groupUpdated })
+                            res.status(202).json({ message: 'add new participant in team', group: groupUpdated })
                         }
                     }
 
@@ -162,7 +154,7 @@ class ParticipantController {
                     }
                 ])
                 if (allQustions[0].hasQuestion) {
-                    res.send('you can\'t')
+                    res.send('this question is already answered')
                 } else {
 
                     const pushQ = await groupMember.questions.push(questionId)
@@ -185,9 +177,10 @@ class ParticipantController {
                     if (findQuestion.answer == req.body.anwser) {
                         console.log('correct');
                         const addPoint = await Participant.updateOne({ _id: tokenDecode._id }, { $inc: { points: findQuestion.points } })
-                    } else {
-                        console.log('incorrect');
                     }
+                    //  else {
+                    //     console.log('incorrect');
+                    // }
                     if (groupMember.questions.length === 2) {
                         await groupMember.updateOne({ start: false })
                         // find participant in group 
@@ -205,11 +198,14 @@ class ParticipantController {
 
                         const bigger = points.indexOf(Math.max.apply(Math, points))
                         const winner = await Participant.findById({ _id: groupMember.id_participants[bigger] })
-                        console.log(winner);
+                        res.status(202).json({ message: 'the winner is : ', winner: winner });
 
+                    } else {
+                        res.status(200).send('save anwser')
                     }
-                    res.status(200).send('save anwser')
                 }
+
+
             } else {
                 res.status(404).send('game over')
             }
@@ -220,45 +216,23 @@ class ParticipantController {
         }
     }
 
-     hola = function() {
-        console.log('salut')
+
+    async getRandomQuestion(req, res) {
+
+        const docs = await Qustion.countDocuments()
+        var random = Math.floor(Math.random() * docs)
+        const code = req.params.code
+        const randomQuestion = await Qustion.findOne().skip(random)
+        const QustionInGroup = await Group.findOne({ code: req.params.code }).select('questions')
+
+        if (QustionInGroup.questions.includes(randomQuestion._id)) {
+            await new ParticipantController().getRandomQuestion(req, res);
+        } else {
+            res.status(200).send(randomQuestion)
+        }
+
     }
 
-     restartGetQus=async()=>{
-         await getRandomQuestion(req,res)
-        // if(!getRandomQuestion()){
-        //     console.log('azr');
-        // }
-    }
-    async  getRandomQuestion(req,res){
-        // try {
-            // Qustion.countDocuments(async(err,count) =>{
-                const docs =await Qustion.countDocuments()
-                var random = Math.floor(Math.random() * docs)
-                const code = req.params.code
-                const randomQuestion = await Qustion.findOne().skip(random)
-                
-                const QustionInGroup = await Group.findOne({code:req.params.code}).select('questions')
-                
-                if(QustionInGroup.questions.includes(randomQuestion._id)){
-                  
-                    console.log('bad ques');
-                    // ParticipantController.getRandomQuestion(req,res)
-                    // restartGetQus()
-                    // this.hola();
-                    var a = new ParticipantController();
-                    await console.log(a.hola())
-                }else{
-                    console.log('good ques');
-                    console.log(randomQuestion);
-                    console.log(QustionInGroup.questions);
-                    return true
-                }
-                
-                
-        getRandomQuestion()
-    }
-    
 }
 
 

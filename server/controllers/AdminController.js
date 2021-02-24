@@ -4,7 +4,7 @@ const Participant = require('../models/Participant')
 const Qusetion = require('../models/Qustion')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const {sendMali} = require('./MethodeController')
+const { sendMali } = require('./MethodeController')
 const nexmo = require('../config/sms')
 const PartContrller = require('./ParticipantController')
 require('dotenv').config({ path: __dirname + '/../.env' })
@@ -69,13 +69,13 @@ class AdminController {
     }
 
 
-    async addQustion(req,res){
+    async addQustion(req, res) {
         const question = new Qusetion({
-            quest : req.body.quest,
-            answer : req.body.answer,
-            false_choise : req.body.false_choise,
-            points : req.body.points
-            
+            quest: req.body.quest,
+            answer: req.body.answer,
+            false_choise: req.body.false_choise,
+            points: req.body.points
+
         })
         const saveQu = await question.save()
         res.status(200).send(saveQu)
