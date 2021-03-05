@@ -80,6 +80,13 @@ class AdminController {
         const saveQu = await question.save()
         res.status(200).send(saveQu)
     }
+    async getAllParticipant(req,res){
+        Participant.find({is_valid:false}).select('-password')
+        .then(doc=>{
+            res.status(200).send(doc)
+        })
+        .catch(err=>{console.log(err);})
+    }
 }
 
 module.exports = new AdminController()

@@ -16,6 +16,9 @@ const groupSchema = new mongoose.Schema({
     start : {
         type : Boolean,
         default : true
+    },
+    winner :{
+        type : mongoose.Schema.Types.ObjectId
     }
 })
 

@@ -10,5 +10,7 @@ router.post('/creatGroup',tokenMiddleware,ParticipantController.creatGroup)
 router.patch('/joinGroup',tokenMiddleware,ParticipantController.grouJoin)
 router.post('/addAnwser/:id',ParticipantController.anwser)
 router.get('/getQuestion/:code',ParticipantController.getRandomQuestion)
+router.get('/getNumber/:code',ParticipantController.getNumberInGroup)
+router.get('/getwinner/:code',ParticipantController.getWinner)
 
 module.exports = router

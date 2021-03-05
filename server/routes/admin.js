@@ -11,5 +11,6 @@ router.post('/addAdmin',AdminController.addAdmin)
 router.post('/addadmins',[tokenMiddleware,superAdminMiddleware],AdminController.addAdmin)
 router.patch('/validate/:id',[tokenMiddleware,superAdminMiddleware],AdminController.particapantvalidate)
 router.post('/addQuestion',[tokenMiddleware,adminMiddleware],AdminController.addQustion)
+router.get('/allPArticipant',[tokenMiddleware,superAdminMiddleware],AdminController.getAllParticipant)
 
 module.exports = router

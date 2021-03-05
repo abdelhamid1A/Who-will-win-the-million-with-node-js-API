@@ -71,7 +71,7 @@ class ParticipantController {
                 })
                 // console.log(group);
                 const newGroup = await group.save()
-                res.status(200).json({ message: 'tzad fa jdid', group: newGroup })
+                res.status(200).json({ message: 'create group & delete from the first group', group: newGroup })
             } else {
 
                 const group = new Group({
@@ -80,7 +80,7 @@ class ParticipantController {
                 })
                 // console.log(group);
                 const newGroup = await group.save()
-                res.status(202).json({ message: 'marhaba', group: newGroup })
+                res.status(202).json({ message: 'create group', group: newGroup })
             }
             saveLog("create group", "info", "creatGroup")
         } else {
@@ -100,7 +100,7 @@ class ParticipantController {
                 await Participant.findByIdAndUpdate({ _id: tokenDecode._id }, { $set: { points: 0 } })
                 if (group.id_participants.length < 4) {
                     if (group.id_participants.includes(tokenDecode._id)) {
-                        res.send('you are already joined')
+                        res.status(200).json({ message:'you are already joined'})
                     } else {
                         const userPlay = await Group.findOne({ start: true, id_participants: tokenDecode._id })
                         console.log(userPlay);
@@ -118,7 +118,7 @@ class ParticipantController {
                     }
 
                 } else {
-                    res.send('can\'t play more than 4 players')
+                    res.status(200).json({ message:'can\'t play more than 4 players'})
                 }
 
             } else {
@@ -133,15 +133,21 @@ class ParticipantController {
 
 
     async anwser(req, res) {
+        console.log(req.body);
         const token = req.header('x-auth-token')
         const tokenDecode = jwt.verify(token, process.env.TOKENKEY)
         if (tokenDecode.is_valid) {
             const group = req.body.group
+            // console.log(typeof(group));
             const questionId = req.params.id
+            // console.log(questionId);
+            
             const groupMember = await Group.findOne({ code: group })
+            console.log(groupMember);
             if (groupMember.start === true) {
-                const findQuestion = await Qustion.findById({ _id: req.params.id })
-
+                const findQuestion = await Qustion.findById({ _id: questionId })
+                // console.log(findQuestion);
+                
                 const allQustions = await Group.aggregate([
                     { $match: { "code": group } },
                     {
@@ -153,8 +159,9 @@ class ParticipantController {
                         }
                     }
                 ])
+                
                 if (allQustions[0].hasQuestion) {
-                    res.send('this question is already answered')
+                    res.status(200).send('this question is already answered')
                 } else {
 
                     const pushQ = await groupMember.questions.push(questionId)
@@ -181,7 +188,7 @@ class ParticipantController {
                     //  else {
                     //     console.log('incorrect');
                     // }
-                    if (groupMember.questions.length === 2) {
+                    if (groupMember.questions.length == 2) {
                         await groupMember.updateOne({ start: false })
                         // find participant in group 
                         const part0 = await Participant.findById({ _id: groupMember.id_participants[0] }).select('points')
@@ -198,6 +205,7 @@ class ParticipantController {
 
                         const bigger = points.indexOf(Math.max.apply(Math, points))
                         const winner = await Participant.findById({ _id: groupMember.id_participants[bigger] })
+                        const saveWinner = await Group.findOneAndUpdate({code:group},{'winner':winner._id})
                         res.status(202).json({ message: 'the winner is : ', winner: winner });
 
                     } else {
@@ -207,12 +215,32 @@ class ParticipantController {
 
 
             } else {
-                res.status(404).send('game over')
+                res.status(200).send('game over')
             }
 
 
         } else {
-            res.status(401).send('your account is not validat')
+            res.status(200).send('your account is not validat')
+        }
+    }
+
+    async getWinner(req,res){
+        const code = parseInt(req.params.code);
+        try {
+           const Winner = await Group.aggregate([
+                { $match:{code:code}},
+                {
+                    $lookup:{
+                        from :"participants",
+                        localField: "winner",
+                        foreignField: "_id",
+                        as: "win"
+                    },
+                }
+            ])
+            res.status(200).json({winner:Winner})
+        } catch (error) {
+            console.log(error);
         }
     }
 
@@ -231,6 +259,18 @@ class ParticipantController {
             res.status(200).send(randomQuestion)
         }
 
+    }
+
+    async getNumberInGroup (req,res){
+        const code = req.params.code
+        try {
+            const group = await Group.findOne({code}).select('-start -code ')
+            const number = group.id_participants.length
+            const questionNumber = group.questions.length
+            res.status(200).json({'number':number,'questions':questionNumber})
+        } catch (error) {
+            console.log(error);
+        }
     }
 
 }
